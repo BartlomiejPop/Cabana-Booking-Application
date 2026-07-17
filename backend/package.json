@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "start": "tsx src/index.ts",
-    "test": "tsx --test src/**/*.test.ts"
+    "test": "tsx --test src/routes/tests/**/*.test.ts src/services/tests/**/*.test.ts"
   },
   "dependencies": {
     "express": "^5.2.1"

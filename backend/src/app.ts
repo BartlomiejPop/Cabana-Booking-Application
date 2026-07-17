@@ -1,14 +1,15 @@
-import { readFile } from 'node:fs/promises';
 import express, { type Express } from 'express';
 import { registerApiInfoRoute } from './routes/apiInfo.route.ts';
 import { registerBookingsRoute } from './routes/bookings.route.ts';
+import { registerCabanaBookingsRoute } from './routes/cabanaBookings.route.ts';
+import { registerCabanasRoute } from './routes/cabanas.route.ts';
 import { registerMapRoute } from './routes/map.route.ts';
 import { registerValidateGuestRoute } from './routes/validateGuest.route.ts';
-
-type GuestRecord = {
-  room: string;
-  guestName: string;
-};
+import {
+  loadGuestRecordsFromFile,
+  reserveCabana as reserveCabanaInMemory,
+} from './services/bookings.service.ts';
+import { loadMapPayloadFromFile } from './services/map.service.ts';
 
 type AppConfig = {
   mapPath: string;
@@ -17,6 +18,7 @@ type AppConfig = {
 
 export function createApp(config: AppConfig): Express {
   const app: Express = express();
+  const bookedCabanaIds: string[] = [];
 
   app.use(express.json());
 
@@ -33,30 +35,26 @@ export function createApp(config: AppConfig): Express {
     next();
   });
 
-  const loadGuestRecords = async (): Promise<GuestRecord[]> => {
-    const bookingsRaw = await readFile(config.bookingsPath, 'utf8');
-    const parsed = JSON.parse(bookingsRaw) as unknown;
+  const loadGuestRecords = () => loadGuestRecordsFromFile(config.bookingsPath);
 
-    if (Array.isArray(parsed)) {
-      return parsed as GuestRecord[];
-    }
+  const loadMapPayload = () => loadMapPayloadFromFile(config.mapPath, bookedCabanaIds);
 
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'value' in parsed &&
-      Array.isArray((parsed as { value?: unknown }).value)
-    ) {
-      return (parsed as { value: GuestRecord[] }).value;
-    }
-
-    throw new Error('Unsupported bookings file format');
-  };
+  const reserveCabana = (cabanaId: string, room: string, guestName: string) =>
+    reserveCabanaInMemory({
+      cabanaId,
+      room,
+      guestName,
+      bookedCabanaIds,
+      loadGuestRecords,
+      loadMapPayload,
+    });
 
   registerApiInfoRoute(app);
-  registerMapRoute(app, { mapPath: config.mapPath });
+  registerMapRoute(app, { loadMapPayload });
+  registerCabanasRoute(app, { loadMapPayload });
   registerBookingsRoute(app, { loadGuestRecords });
   registerValidateGuestRoute(app, { loadGuestRecords });
+  registerCabanaBookingsRoute(app, { reserveCabana });
 
   return app;
 }

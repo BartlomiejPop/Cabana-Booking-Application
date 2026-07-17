@@ -1,0 +1,59 @@
+import { type Express, type Request, type Response } from 'express';
+
+type CabanaBookingResult = {
+  ok: boolean;
+  status: number;
+  message: string;
+  cabanaId: string;
+};
+
+type CabanaBookingsRouteDeps = {
+  reserveCabana: (cabanaId: string, room: string, guestName: string) => Promise<CabanaBookingResult>;
+};
+
+type CabanaBookingRequest = {
+  room?: string;
+  guestName?: string;
+};
+
+export function registerCabanaBookingsRoute(app: Express, deps: CabanaBookingsRouteDeps): void {
+  app.post('/api/cabanas/:cabanaId/bookings', async (req: Request, res: Response) => {
+    const cabanaParam = req.params.cabanaId;
+    const cabanaId = Array.isArray(cabanaParam) ? cabanaParam[0] : cabanaParam;
+    const body = req.body as CabanaBookingRequest;
+    const room = body.room?.trim();
+    const guestName = body.guestName?.trim();
+
+    if (!cabanaId) {
+      res.status(400).json({
+        success: false,
+        message: 'cabanaId is required',
+      });
+      return;
+    }
+
+    if (!room || !guestName) {
+      res.status(400).json({
+        success: false,
+        message: 'room and guestName are required',
+      });
+      return;
+    }
+
+    try {
+      const result = await deps.reserveCabana(cabanaId, room, guestName);
+
+      res.status(result.status).json({
+        success: result.ok,
+        message: result.message,
+        cabanaId: result.cabanaId,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to process cabana booking',
+        details: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+}
