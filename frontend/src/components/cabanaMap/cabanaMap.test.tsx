@@ -47,6 +47,24 @@ describe('CabanaMap', () => {
 		expect(await screen.findByText('Could not load map: Network down')).toBeInTheDocument()
 	})
 
+	it('shows a fallback error message when map loading rejects with a non-error value', async () => {
+		vi.spyOn(services, 'fetchMapData').mockRejectedValue('offline')
+
+		render(<CabanaMap />)
+
+		expect(await screen.findByText('Could not load map: Unknown map loading error')).toBeInTheDocument()
+	})
+
+	it('renders non-cabana tiles as disabled buttons', async () => {
+		vi.spyOn(services, 'fetchMapData').mockResolvedValue(mapFixture)
+
+		render(<CabanaMap />)
+
+		expect(await screen.findByRole('button', { name: 'Tile .' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Tile #' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Tile p' })).toBeDisabled()
+	})
+
 	it('renders cabana tile and updates status after clicking available cabana', async () => {
 		vi.spyOn(services, 'fetchMapData').mockResolvedValue(mapFixture)
 
@@ -57,6 +75,17 @@ describe('CabanaMap', () => {
 
 		expect(screen.getByText('Cabana cabana-0-0 is available. Complete the booking form to reserve it.')).toBeInTheDocument()
 		expect(screen.getByRole('dialog', { name: 'Book Cabana cabana-0-0' })).toBeInTheDocument()
+	})
+
+	it('closes the booking modal when cancel is clicked', async () => {
+		vi.spyOn(services, 'fetchMapData').mockResolvedValue(mapFixture)
+
+		render(<CabanaMap />)
+
+		await userEvent.click(await screen.findByRole('button', { name: 'Cabana cabana-0-0' }))
+		await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+		expect(screen.queryByRole('dialog', { name: 'Book Cabana cabana-0-0' })).not.toBeInTheDocument()
 	})
 
 	it('books an available cabana and refreshes the map', async () => {
@@ -136,6 +165,22 @@ describe('CabanaMap', () => {
 			screen.getByText('Guest name must contain letters, spaces, apostrophes, or hyphens only.'),
 		).toBeInTheDocument()
 		expect(bookCabanaSpy).not.toHaveBeenCalled()
+	})
+
+	it('shows a generic booking failure message when booking rejects with a non-error value', async () => {
+		vi.spyOn(services, 'fetchMapData').mockResolvedValue(mapFixture)
+		vi.spyOn(services, 'bookCabana').mockRejectedValue('service unavailable')
+
+		render(<CabanaMap />)
+
+		await userEvent.click(await screen.findByRole('button', { name: 'Cabana cabana-0-0' }))
+		await userEvent.type(screen.getByLabelText('Room number'), '101')
+		await userEvent.type(screen.getByLabelText('Guest name'), 'Alex Guest')
+		await userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }))
+
+		const errorMessages = await screen.findAllByText('Booking failed')
+		expect(errorMessages).toHaveLength(2)
+		expect(screen.getByText('Booking failed', { selector: '.status' })).toHaveClass('error')
 	})
 
 	it('shows a reassignment message when a guest switches cabanas', async () => {

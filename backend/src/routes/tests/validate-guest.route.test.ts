@@ -60,3 +60,25 @@ test('POST /api/validate-guest requires guest name text format', async () => {
     'Guest name must contain letters, spaces, apostrophes, or hyphens only',
   );
 });
+
+test('POST /api/validate-guest trims whitespace and accepts case-insensitive guest names', async () => {
+  const app = createTestApp();
+  const response = await request(app)
+    .post('/api/validate-guest')
+    .send({ room: ' 101 ', guestName: ' alice smith ' });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.valid, true);
+  assert.equal(response.body.message, 'Guest validated');
+});
+
+test('POST /api/validate-guest rejects whitespace-only values as required fields', async () => {
+  const app = createTestApp();
+  const response = await request(app)
+    .post('/api/validate-guest')
+    .send({ room: '   ', guestName: '   ' });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.valid, false);
+  assert.equal(response.body.message, 'room and guestName are required');
+});
