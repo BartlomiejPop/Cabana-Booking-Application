@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
+import type { CabanaReservation } from '../bookings.service.ts';
 import { loadMapPayloadFromFile } from '../map.service.ts';
 
 const mapPath = path.resolve(process.cwd(), '..', 'api', 'map.ascii');
@@ -21,8 +22,12 @@ test('loadMapPayloadFromFile returns parsed map and cabanas', async () => {
   assert.equal(firstCabana.isBooked, false);
 });
 
-test('loadMapPayloadFromFile marks cabanas as booked from provided ids', async () => {
-  const payload = await loadMapPayloadFromFile(mapPath, ['cabana-3-11', 'cabana-4-11']);
+test('loadMapPayloadFromFile marks cabanas as booked from provided reservations', async () => {
+  const reservations: CabanaReservation[] = [
+    { cabanaId: 'cabana-3-11', room: '101', guestName: 'Alice Smith' },
+    { cabanaId: 'cabana-4-11', room: '102', guestName: 'Bob Jones' },
+  ];
+  const payload = await loadMapPayloadFromFile(mapPath, reservations);
 
   const cabanaA = payload.cabanas.find((cabana) => cabana.id === 'cabana-3-11');
   const cabanaB = payload.cabanas.find((cabana) => cabana.id === 'cabana-4-11');

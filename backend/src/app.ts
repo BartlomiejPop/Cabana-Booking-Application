@@ -6,6 +6,7 @@ import { registerCabanasRoute } from './routes/cabanas.route.ts';
 import { registerMapRoute } from './routes/map.route.ts';
 import { registerValidateGuestRoute } from './routes/validateGuest.route.ts';
 import {
+  type CabanaReservation,
   loadGuestRecordsFromFile,
   reserveCabana as reserveCabanaInMemory,
 } from './services/bookings.service.ts';
@@ -18,7 +19,7 @@ type AppConfig = {
 
 export function createApp(config: AppConfig): Express {
   const app: Express = express();
-  const bookedCabanaIds: string[] = [];
+  const reservations: CabanaReservation[] = [];
 
   app.use(express.json());
 
@@ -37,14 +38,14 @@ export function createApp(config: AppConfig): Express {
 
   const loadGuestRecords = () => loadGuestRecordsFromFile(config.bookingsPath);
 
-  const loadMapPayload = () => loadMapPayloadFromFile(config.mapPath, bookedCabanaIds);
+  const loadMapPayload = () => loadMapPayloadFromFile(config.mapPath, reservations);
 
   const reserveCabana = (cabanaId: string, room: string, guestName: string) =>
     reserveCabanaInMemory({
       cabanaId,
       room,
       guestName,
-      bookedCabanaIds,
+      reservations,
       loadGuestRecords,
       loadMapPayload,
     });

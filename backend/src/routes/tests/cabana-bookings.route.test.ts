@@ -18,7 +18,7 @@ test('POST /api/cabanas/:cabanaId/bookings books a valid available cabana', asyn
 
   assert.equal(bookingResponse.status, 200);
   assert.equal(bookingResponse.body.success, true);
-  assert.equal(bookingResponse.body.message, 'Cabana booked successfully');
+  assert.equal(bookingResponse.body.message, `Cabana ${availableCabana.id} booked successfully`);
 
   const mapResponse = await request(app).get('/api/map');
   const bookedCabana = mapResponse.body.cabanas.find(
@@ -51,6 +51,49 @@ test('POST /api/cabanas/:cabanaId/bookings rejects duplicate booking', async () 
   assert.equal(duplicateBooking.body.message, 'Cabana is already booked');
 });
 
+test('POST /api/cabanas/:cabanaId/bookings reassigns a guest to a new cabana', async () => {
+  const app = createTestApp();
+  const cabanasResponse = await request(app).get('/api/cabanas');
+  const availableCabanas = cabanasResponse.body.filter(
+    (cabana: { id: string; isBooked: boolean }) => !cabana.isBooked,
+  );
+
+  assert.ok(availableCabanas.length >= 2);
+
+  const firstCabana = availableCabanas[0];
+  const secondCabana = availableCabanas[1];
+
+  const firstBooking = await request(app)
+    .post(`/api/cabanas/${firstCabana.id}/bookings`)
+    .send({ room: '101', guestName: 'Alice Smith' });
+
+  assert.equal(firstBooking.status, 200);
+
+  const secondBooking = await request(app)
+    .post(`/api/cabanas/${secondCabana.id}/bookings`)
+    .send({ room: '101', guestName: 'Alice Smith' });
+
+  assert.equal(secondBooking.status, 200);
+  assert.equal(secondBooking.body.success, true);
+  assert.equal(
+    secondBooking.body.message,
+    `Booking moved from ${firstCabana.id} to ${secondCabana.id}`,
+  );
+
+  const mapResponse = await request(app).get('/api/map');
+  const originalCabana = mapResponse.body.cabanas.find(
+    (cabana: { id: string; isBooked: boolean }) => cabana.id === firstCabana.id,
+  );
+  const reassignedCabana = mapResponse.body.cabanas.find(
+    (cabana: { id: string; isBooked: boolean }) => cabana.id === secondCabana.id,
+  );
+
+  assert.ok(originalCabana);
+  assert.ok(reassignedCabana);
+  assert.equal(originalCabana.isBooked, false);
+  assert.equal(reassignedCabana.isBooked, true);
+});
+
 test('POST /api/cabanas/:cabanaId/bookings rejects invalid guest credentials', async () => {
   const app = createTestApp();
   const bookingResponse = await request(app)
@@ -60,4 +103,29 @@ test('POST /api/cabanas/:cabanaId/bookings rejects invalid guest credentials', a
   assert.equal(bookingResponse.status, 400);
   assert.equal(bookingResponse.body.success, false);
   assert.equal(bookingResponse.body.message, 'Room number and guest name do not match');
+});
+
+test('POST /api/cabanas/:cabanaId/bookings requires numeric room number', async () => {
+  const app = createTestApp();
+  const bookingResponse = await request(app)
+    .post('/api/cabanas/cabana-2-11/bookings')
+    .send({ room: '10A', guestName: 'Alice Smith' });
+
+  assert.equal(bookingResponse.status, 400);
+  assert.equal(bookingResponse.body.success, false);
+  assert.equal(bookingResponse.body.message, 'Room number must contain digits only');
+});
+
+test('POST /api/cabanas/:cabanaId/bookings requires guest name text format', async () => {
+  const app = createTestApp();
+  const bookingResponse = await request(app)
+    .post('/api/cabanas/cabana-2-11/bookings')
+    .send({ room: '101', guestName: '12345' });
+
+  assert.equal(bookingResponse.status, 400);
+  assert.equal(bookingResponse.body.success, false);
+  assert.equal(
+    bookingResponse.body.message,
+    'Guest name must contain letters, spaces, apostrophes, or hyphens only',
+  );
 });

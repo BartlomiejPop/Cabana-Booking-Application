@@ -35,3 +35,28 @@ test('POST /api/validate-guest requires room and guestName', async () => {
   assert.equal(response.body.valid, false);
   assert.equal(response.body.message, 'room and guestName are required');
 });
+
+test('POST /api/validate-guest requires numeric room', async () => {
+  const app = createTestApp();
+  const response = await request(app)
+    .post('/api/validate-guest')
+    .send({ room: '10A', guestName: 'Alice Smith' });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.valid, false);
+  assert.equal(response.body.message, 'Room number must contain digits only');
+});
+
+test('POST /api/validate-guest requires guest name text format', async () => {
+  const app = createTestApp();
+  const response = await request(app)
+    .post('/api/validate-guest')
+    .send({ room: '101', guestName: '12345' });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.valid, false);
+  assert.equal(
+    response.body.message,
+    'Guest name must contain letters, spaces, apostrophes, or hyphens only',
+  );
+});
