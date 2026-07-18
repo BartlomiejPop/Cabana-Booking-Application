@@ -129,3 +129,43 @@ test('POST /api/cabanas/:cabanaId/bookings requires guest name text format', asy
     'Guest name must contain letters, spaces, apostrophes, or hyphens only',
   );
 });
+
+test('POST /api/cabanas/:cabanaId/bookings trims whitespace and accepts case-insensitive guest name', async () => {
+  const app = createTestApp();
+  const cabanasResponse = await request(app).get('/api/cabanas');
+  const availableCabana = cabanasResponse.body.find(
+    (cabana: { id: string; isBooked: boolean }) => !cabana.isBooked,
+  );
+
+  assert.ok(availableCabana);
+
+  const bookingResponse = await request(app)
+    .post(`/api/cabanas/${availableCabana.id}/bookings`)
+    .send({ room: ' 101 ', guestName: ' alice smith ' });
+
+  assert.equal(bookingResponse.status, 200);
+  assert.equal(bookingResponse.body.success, true);
+  assert.equal(bookingResponse.body.cabanaId, availableCabana.id);
+});
+
+test('POST /api/cabanas/:cabanaId/bookings rejects whitespace-only room and guest name', async () => {
+  const app = createTestApp();
+  const bookingResponse = await request(app)
+    .post('/api/cabanas/cabana-2-11/bookings')
+    .send({ room: '   ', guestName: '   ' });
+
+  assert.equal(bookingResponse.status, 400);
+  assert.equal(bookingResponse.body.success, false);
+  assert.equal(bookingResponse.body.message, 'room and guestName are required');
+});
+
+test('POST /api/cabanas/:cabanaId/bookings returns not found for unknown cabana id', async () => {
+  const app = createTestApp();
+  const bookingResponse = await request(app)
+    .post('/api/cabanas/cabana-999-999/bookings')
+    .send({ room: '101', guestName: 'Alice Smith' });
+
+  assert.equal(bookingResponse.status, 404);
+  assert.equal(bookingResponse.body.success, false);
+  assert.equal(bookingResponse.body.message, 'Cabana does not exist');
+});
