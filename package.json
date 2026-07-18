@@ -1,0 +1,14 @@
+{
+	"name": "cabana-booking-application",
+	"private": true,
+	"version": "1.0.0",
+	"scripts": {
+		"frontend": "npm --prefix frontend run dev",
+		"backend": "npm --prefix backend run dev",
+		"start": "node ./scripts/start.cjs",
+		"test": "node ./scripts/test.cjs"
+	},
+	"devDependencies": {
+		"concurrently": "^10.0.3"
+	}
+}
