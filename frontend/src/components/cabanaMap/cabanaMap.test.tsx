@@ -73,8 +73,8 @@ describe('CabanaMap', () => {
 		const cabanaButton = await screen.findByRole('button', { name: 'Cabana cabana-0-0' })
 		await userEvent.click(cabanaButton)
 
-		expect(screen.getByText('Cabana cabana-0-0 is available. Complete the booking form to reserve it.')).toBeInTheDocument()
-		expect(screen.getByRole('dialog', { name: 'Book Cabana cabana-0-0' })).toBeInTheDocument()
+		expect(screen.getByText('cabana-0-0 is available. Complete the booking form to reserve it.')).toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: 'Book cabana-0-0' })).toBeInTheDocument()
 	})
 
 	it('closes the booking modal when cancel is clicked', async () => {
@@ -85,7 +85,7 @@ describe('CabanaMap', () => {
 		await userEvent.click(await screen.findByRole('button', { name: 'Cabana cabana-0-0' }))
 		await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
-		expect(screen.queryByRole('dialog', { name: 'Book Cabana cabana-0-0' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('dialog', { name: 'Book cabana-0-0' })).not.toBeInTheDocument()
 	})
 
 	it('books an available cabana and refreshes the map', async () => {
@@ -106,10 +106,10 @@ describe('CabanaMap', () => {
 		await userEvent.type(screen.getByLabelText('Guest name'), 'Alex Guest')
 		await userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }))
 
-		const statusMessage = await screen.findByText('Cabana cabana-0-0 booked successfully. cabana-0-0 is now unavailable.')
+		const statusMessage = await screen.findByText('Cabana cabana-0-0 booked successfully.')
 		expect(statusMessage).toBeInTheDocument()
 		expect(statusMessage).toHaveClass('success')
-		expect(screen.queryByRole('dialog', { name: 'Book Cabana cabana-0-0' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('dialog', { name: 'Book cabana-0-0' })).not.toBeInTheDocument()
 		expect(screen.getByText('Booked')).toBeInTheDocument()
 		expect(services.bookCabana).toHaveBeenCalledWith('http://localhost:3000', 'cabana-0-0', {
 			room: '101',
@@ -132,7 +132,7 @@ describe('CabanaMap', () => {
 		expect(errorMessages).toHaveLength(2)
 		expect(screen.getByText('Room number and guest name do not match', { selector: '.status' })).toHaveClass('error')
 		expect(screen.getByText('Room number and guest name do not match', { selector: '.modalMessage' })).toBeInTheDocument()
-		expect(screen.getByRole('dialog', { name: 'Book Cabana cabana-0-0' })).toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: 'Book cabana-0-0' })).toBeInTheDocument()
 	})
 
 	it('validates room number format in the modal before submitting', async () => {
@@ -201,9 +201,7 @@ describe('CabanaMap', () => {
 		await userEvent.type(screen.getByLabelText('Guest name'), 'Alex Guest')
 		await userEvent.click(screen.getByRole('button', { name: 'Confirm booking' }))
 
-		const statusMessage = await screen.findByText(
-			'Booking moved from cabana-4-2 to cabana-0-0. cabana-0-0 is now unavailable.',
-		)
+		const statusMessage = await screen.findByText('Booking moved from cabana-4-2 to cabana-0-0.')
 		expect(statusMessage).toHaveClass('success')
 	})
 

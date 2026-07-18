@@ -97,7 +97,7 @@ describe('BookingModal', () => {
 
 		render(<BookingModal cabanaId="cabana-0-0" onCancel={onCancel} onSubmit={vi.fn<() => Promise<void>>()} />)
 
-		await userEvent.click(screen.getByRole('dialog', { name: 'Book Cabana cabana-0-0' }))
+		await userEvent.click(screen.getByRole('dialog', { name: 'Book cabana-0-0' }))
 
 		expect(onCancel).not.toHaveBeenCalled()
 	})
