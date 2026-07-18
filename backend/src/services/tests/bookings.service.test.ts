@@ -5,6 +5,7 @@ import {
   isGuestValid,
   loadGuestRecordsFromFile,
   reserveCabana,
+  type CabanaReservation,
   type GuestRecord,
 } from '../bookings.service.ts';
 
@@ -30,34 +31,36 @@ test('isGuestValid returns true for matching room and guest', () => {
   assert.equal(result, true);
 });
 
-test('reserveCabana returns success and stores cabana id for valid booking', async () => {
-  const bookedCabanaIds: string[] = [];
+test('reserveCabana returns success and stores cabana reservation for valid booking', async () => {
+  const reservations: CabanaReservation[] = [];
   const guests: GuestRecord[] = [{ room: '101', guestName: 'Alice Smith' }];
 
   const result = await reserveCabana({
     cabanaId: 'cabana-3-11',
     room: '101',
     guestName: 'Alice Smith',
-    bookedCabanaIds,
+    reservations,
     loadGuestRecords: async () => guests,
     loadMapPayload: async () => ({ cabanas: [{ id: 'cabana-3-11' }] }),
   });
 
   assert.equal(result.ok, true);
   assert.equal(result.status, 200);
-  assert.equal(result.message, 'Cabana booked successfully');
-  assert.deepEqual(bookedCabanaIds, ['cabana-3-11']);
+  assert.equal(result.message, 'Cabana cabana-3-11 booked successfully');
+  assert.deepEqual(reservations, [{ cabanaId: 'cabana-3-11', room: '101', guestName: 'Alice Smith' }]);
 });
 
 test('reserveCabana returns conflict for already booked cabana', async () => {
-  const bookedCabanaIds: string[] = ['cabana-3-11'];
+  const reservations: CabanaReservation[] = [
+		{ cabanaId: 'cabana-3-11', room: '102', guestName: 'Bob Jones' },
+	];
   const guests: GuestRecord[] = [{ room: '101', guestName: 'Alice Smith' }];
 
   const result = await reserveCabana({
     cabanaId: 'cabana-3-11',
     room: '101',
     guestName: 'Alice Smith',
-    bookedCabanaIds,
+    reservations,
     loadGuestRecords: async () => guests,
     loadMapPayload: async () => ({ cabanas: [{ id: 'cabana-3-11' }] }),
   });
@@ -67,15 +70,36 @@ test('reserveCabana returns conflict for already booked cabana', async () => {
   assert.equal(result.message, 'Cabana is already booked');
 });
 
+test('reserveCabana switches a guest from a previous cabana to the new cabana', async () => {
+  const reservations: CabanaReservation[] = [
+    { cabanaId: 'cabana-3-11', room: '101', guestName: 'Alice Smith' },
+  ];
+  const guests: GuestRecord[] = [{ room: '101', guestName: 'Alice Smith' }];
+
+  const result = await reserveCabana({
+    cabanaId: 'cabana-4-11',
+    room: '101',
+    guestName: 'Alice Smith',
+    reservations,
+    loadGuestRecords: async () => guests,
+    loadMapPayload: async () => ({ cabanas: [{ id: 'cabana-3-11' }, { id: 'cabana-4-11' }] }),
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 200);
+  assert.equal(result.message, 'Booking moved from cabana-3-11 to cabana-4-11');
+  assert.deepEqual(reservations, [{ cabanaId: 'cabana-4-11', room: '101', guestName: 'Alice Smith' }]);
+});
+
 test('reserveCabana returns bad request for invalid guest', async () => {
-  const bookedCabanaIds: string[] = [];
+  const reservations: CabanaReservation[] = [];
   const guests: GuestRecord[] = [{ room: '101', guestName: 'Alice Smith' }];
 
   const result = await reserveCabana({
     cabanaId: 'cabana-3-11',
     room: '101',
     guestName: 'Wrong Name',
-    bookedCabanaIds,
+    reservations,
     loadGuestRecords: async () => guests,
     loadMapPayload: async () => ({ cabanas: [{ id: 'cabana-3-11' }] }),
   });
@@ -86,14 +110,14 @@ test('reserveCabana returns bad request for invalid guest', async () => {
 });
 
 test('reserveCabana returns not found for unknown cabana id', async () => {
-  const bookedCabanaIds: string[] = [];
+  const reservations: CabanaReservation[] = [];
   const guests: GuestRecord[] = [{ room: '101', guestName: 'Alice Smith' }];
 
   const result = await reserveCabana({
     cabanaId: 'cabana-999-999',
     room: '101',
     guestName: 'Alice Smith',
-    bookedCabanaIds,
+    reservations,
     loadGuestRecords: async () => guests,
     loadMapPayload: async () => ({ cabanas: [{ id: 'cabana-3-11' }] }),
   });

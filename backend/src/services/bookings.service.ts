@@ -5,6 +5,12 @@ export type GuestRecord = {
   guestName: string;
 };
 
+export type CabanaReservation = {
+	 cabanaId: string;
+	 room: string;
+	 guestName: string;
+};
+
 export type CabanaBookingResult = {
   ok: boolean;
   status: number;
@@ -38,11 +44,15 @@ export function isGuestValid(guests: GuestRecord[], room: string, guestName: str
   );
 }
 
+function normalizeGuestName(guestName: string): string {
+	return guestName.trim().toLowerCase();
+}
+
 export async function reserveCabana(params: {
   cabanaId: string;
   room: string;
   guestName: string;
-  bookedCabanaIds: string[];
+  reservations: CabanaReservation[];
   loadGuestRecords: () => Promise<GuestRecord[]>;
   loadMapPayload: () => Promise<{ cabanas: Array<{ id: string }> }>;
 }): Promise<CabanaBookingResult> {
@@ -70,7 +80,21 @@ export async function reserveCabana(params: {
     };
   }
 
-  if (params.bookedCabanaIds.includes(params.cabanaId)) {
+  const existingReservationForCabana = params.reservations.find(
+    (reservation) => reservation.cabanaId === params.cabanaId,
+  );
+
+  const normalizedGuestName = normalizeGuestName(params.guestName);
+  const existingReservationForGuest = params.reservations.find(
+    (reservation) =>
+      reservation.room === params.room && normalizeGuestName(reservation.guestName) === normalizedGuestName,
+  );
+
+  if (
+    existingReservationForCabana &&
+    (existingReservationForCabana.room !== params.room ||
+      normalizeGuestName(existingReservationForCabana.guestName) !== normalizedGuestName)
+  ) {
     return {
       ok: false,
       status: 409,
@@ -79,12 +103,26 @@ export async function reserveCabana(params: {
     };
   }
 
-  params.bookedCabanaIds.push(params.cabanaId);
+	const previousCabanaId = existingReservationForGuest?.cabanaId;
+
+  if (existingReservationForGuest) {
+    existingReservationForGuest.cabanaId = params.cabanaId;
+    existingReservationForGuest.guestName = params.guestName;
+  } else {
+    params.reservations.push({
+      cabanaId: params.cabanaId,
+      room: params.room,
+      guestName: params.guestName,
+    });
+  }
 
   return {
     ok: true,
     status: 200,
-    message: 'Cabana booked successfully',
+		message:
+			previousCabanaId && previousCabanaId !== params.cabanaId
+				? `Booking moved from ${previousCabanaId} to ${params.cabanaId}`
+				: `Cabana ${params.cabanaId} booked successfully`,
     cabanaId: params.cabanaId,
   };
 }

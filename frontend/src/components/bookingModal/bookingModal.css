@@ -1,0 +1,118 @@
+.modalBackdrop {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: rgba(8, 22, 36, 0.58);
+	backdrop-filter: blur(4px);
+	z-index: 20;
+}
+
+.modalCard {
+	width: min(100%, 28rem);
+	background: linear-gradient(180deg, #fffef8, #f4ecda);
+	border: 1px solid rgba(86, 105, 124, 0.24);
+	border-radius: 18px;
+	box-shadow: 0 20px 55px rgba(18, 34, 52, 0.3);
+	padding: 1.25rem;
+	color: #18314a;
+}
+
+.modalHeader h2 {
+	margin: 0;
+	font-size: 1.35rem;
+}
+
+.modalHeader p {
+	margin: 0.35rem 0 0;
+	color: #486075;
+}
+
+.bookingForm {
+	display: grid;
+	gap: 0.95rem;
+	margin-top: 1rem;
+}
+
+.bookingField {
+	display: grid;
+	gap: 0.35rem;
+	font-weight: 600;
+}
+
+.bookingField input {
+	border: 1px solid rgba(65, 92, 119, 0.28);
+	border-radius: 10px;
+	padding: 0.75rem 0.85rem;
+	font: inherit;
+	color: #18314a;
+	background: rgba(255, 255, 255, 0.9);
+	box-sizing: border-box;
+	width: 100%;
+}
+
+.bookingField input:focus {
+	outline: 2px solid rgba(230, 149, 36, 0.28);
+	border-color: #e69524;
+}
+
+.modalMessage {
+	margin: 0;
+	min-height: 1.25rem;
+	color: #9b1c2f;
+	font-weight: 600;
+}
+
+.modalActions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	margin-top: 0.25rem;
+	flex-wrap: wrap;
+}
+
+.modalButton {
+	border: 0;
+	border-radius: 999px;
+	padding: 0.75rem 1rem;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+	transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.modalButton:disabled {
+	cursor: wait;
+	opacity: 0.72;
+}
+
+.modalButton:hover:not(:disabled) {
+	transform: translateY(-1px);
+}
+
+.modalButtonSecondary {
+	background: rgba(59, 84, 108, 0.12);
+	color: #28445f;
+}
+
+.modalButtonPrimary {
+	background: linear-gradient(135deg, #ca7f17, #f0ad42);
+	color: #fff;
+	box-shadow: 0 10px 25px rgba(202, 127, 23, 0.28);
+}
+
+@media (max-width: 640px) {
+	.modalCard {
+		padding: 1rem;
+	}
+
+	.modalActions {
+		justify-content: stretch;
+	}
+
+	.modalButton {
+		width: 100%;
+	}
+}

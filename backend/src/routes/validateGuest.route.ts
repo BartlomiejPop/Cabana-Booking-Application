@@ -1,4 +1,8 @@
 import { type Express, type Request, type Response } from 'express';
+import {
+  guestCredentialsSchema,
+  toValidationMessage,
+} from '../validation/guestCredentials.validation.ts';
 
 type GuestRecord = {
   room: string;
@@ -11,17 +15,28 @@ type ValidateGuestRouteDeps = {
 
 export function registerValidateGuestRoute(app: Express, deps: ValidateGuestRouteDeps): void {
   app.post('/api/validate-guest', async (req: Request, res: Response) => {
-    const body = req.body as Partial<GuestRecord>;
-    const room = body.room?.trim();
-    const guestName = body.guestName?.trim();
+    const body = req.body as Partial<{ room: unknown; guestName: unknown }>;
+    const roomRaw = typeof body.room === 'string' ? body.room.trim() : '';
+    const guestNameRaw = typeof body.guestName === 'string' ? body.guestName.trim() : '';
 
-    if (!room || !guestName) {
+    if (!roomRaw || !guestNameRaw) {
       res.status(400).json({
         valid: false,
         message: 'room and guestName are required',
       });
       return;
     }
+
+    const parsedBody = guestCredentialsSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      res.status(400).json({
+        valid: false,
+        message: toValidationMessage(parsedBody.error),
+      });
+      return;
+    }
+
+    const { room, guestName } = parsedBody.data;
 
     try {
       const guests = await deps.loadGuestRecords();

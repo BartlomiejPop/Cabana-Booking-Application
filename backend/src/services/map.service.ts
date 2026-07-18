@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import type { CabanaReservation } from './bookings.service.ts';
 
 export type Cabana = {
   id: string;
@@ -18,7 +19,10 @@ function toCabanaId(x: number, y: number): string {
   return `cabana-${x}-${y}`;
 }
 
-export async function loadMapPayloadFromFile(mapPath: string, bookedCabanaIds: string[]): Promise<MapPayload> {
+export async function loadMapPayloadFromFile(
+	mapPath: string,
+	reservations: CabanaReservation[],
+): Promise<MapPayload> {
   const mapRaw = await readFile(mapPath, 'utf8');
   const rows = mapRaw.replace(/\r/g, '').trimEnd().split('\n');
   const grid = rows.map((row) => row.split(''));
@@ -28,7 +32,8 @@ export async function loadMapPayloadFromFile(mapPath: string, bookedCabanaIds: s
     for (let x = 0; x < grid[y].length; x += 1) {
       if (grid[y][x] === 'W') {
         const id = toCabanaId(x, y);
-        cabanas.push({ id, x, y, isBooked: bookedCabanaIds.includes(id) });
+		const isBooked = reservations.some((reservation) => reservation.cabanaId === id);
+		cabanas.push({ id, x, y, isBooked });
       }
     }
   }

@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { createApp } from './app.ts';
 
@@ -5,6 +6,17 @@ type CliOptions = {
   mapPath: string;
   bookingsPath: string;
 };
+
+function resolveDefaultFile(fileName: string): string {
+  const candidates = [
+    path.join(process.cwd(), fileName),
+    path.join(process.cwd(), 'api', fileName),
+    path.join(process.cwd(), '..', 'api', fileName),
+  ];
+
+  const found = candidates.find((candidate) => existsSync(candidate));
+  return path.resolve(found ?? candidates[0]);
+}
 
 function parseCliOptions(argv: string[]): CliOptions {
   const getArgValue = (flag: '--map' | '--bookings'): string | undefined => {
@@ -20,8 +32,8 @@ function parseCliOptions(argv: string[]): CliOptions {
   const bookingsArg = getArgValue('--bookings');
 
   return {
-    mapPath: path.resolve(mapArg ?? path.join(process.cwd(), 'map.ascii')),
-    bookingsPath: path.resolve(bookingsArg ?? path.join(process.cwd(), 'bookings.json')),
+    mapPath: path.resolve(mapArg ?? resolveDefaultFile('map.ascii')),
+    bookingsPath: path.resolve(bookingsArg ?? resolveDefaultFile('bookings.json')),
   };
 }
 
