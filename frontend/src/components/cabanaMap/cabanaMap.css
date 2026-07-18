@@ -82,20 +82,18 @@
 	outline-offset: -2px;
 }
 
-.isCabana.isBooked {
-	filter: grayscale(0.42) contrast(0.86);
-}
-
 .bookedBadge {
 	position: absolute;
 	right: 1px;
-	top: 1px;
-	font-size: 0.48rem;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: clamp(0.32rem, 0.22rem + 0.35vw, 0.48rem);
 	font-weight: 700;
-	padding: 0.02rem 0.16rem;
+	padding: 0.02rem clamp(0.08rem, 0.04rem + 0.18vw, 0.16rem);
 	border-radius: 3px;
 	background: #b71f2f;
 	color: #fff;
+	line-height: 1;
 }
 
 .status {
@@ -106,6 +104,11 @@
 
 .status.error {
 	color: #9b1c2f;
+	font-weight: 600;
+}
+
+.status.success {
+	color: #1f7a43;
 	font-weight: 600;
 }
 

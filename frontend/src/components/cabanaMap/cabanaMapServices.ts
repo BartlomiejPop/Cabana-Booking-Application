@@ -25,6 +25,17 @@ export type MapResponse = {
 	cabanas: Cabana[]
 }
 
+export type CabanaBookingRequest = {
+	room: string
+	guestName: string
+}
+
+export type CabanaBookingResponse = {
+	success: boolean
+	message: string
+	cabanaId: string
+}
+
 export type RoadVariant = 'crossing' | 'split' | 'corner' | 'straight' | 'end'
 
 export type RoadTileVariant = {
@@ -51,6 +62,32 @@ export async function fetchMapData(apiBaseUrl: string): Promise<MapResponse> {
 	}
 
 	return (await response.json()) as MapResponse
+}
+
+export async function bookCabana(
+	apiBaseUrl: string,
+	cabanaId: string,
+	payload: CabanaBookingRequest,
+): Promise<CabanaBookingResponse> {
+	const response = await fetch(`${apiBaseUrl}/api/cabanas/${cabanaId}/bookings`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(payload),
+	})
+
+	const data = (await response.json()) as Partial<CabanaBookingResponse>
+
+	if (!response.ok || !data.success) {
+		throw new Error(data.message ?? `Booking request failed (${response.status})`)
+	}
+
+	return {
+		success: true,
+		message: data.message ?? 'Cabana booked successfully',
+		cabanaId: data.cabanaId ?? cabanaId,
+	}
 }
 
 export function buildCabanaLookup(mapData: MapResponse | null): Map<string, Cabana> {
