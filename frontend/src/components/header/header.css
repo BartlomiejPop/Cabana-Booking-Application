@@ -1,0 +1,16 @@
+.appHeader {
+	text-align: center;
+}
+
+.kicker {
+	font-size: 0.82rem;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: #335f8a;
+}
+
+.subtitle {
+	margin: 0 auto;
+	max-width: 42rem;
+	color: #3d5063;
+}

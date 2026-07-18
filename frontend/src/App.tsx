@@ -1,7 +1,13 @@
 import CabanaMap from './components/cabanaMap/cabanaMap.tsx'
+import { Header } from './components/header/header.tsx'
 
 function App() {
-  return <CabanaMap />
+  return (
+    <div className="app">
+      <Header />
+      <CabanaMap />
+    </div>
+  )
 }
 
 export default App

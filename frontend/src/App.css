@@ -43,14 +43,6 @@
   margin-bottom: 0.8rem;
 }
 
-.legend span {
-  border: 1px solid rgba(44, 83, 120, 0.2);
-  border-radius: 999px;
-  padding: 0.25rem 0.7rem;
-  font-size: 0.78rem;
-  background: rgba(255, 255, 255, 0.75);
-}
-
 .boardWrap {
   overflow: auto;
   padding-bottom: 0.2rem;

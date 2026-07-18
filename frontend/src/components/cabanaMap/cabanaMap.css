@@ -8,25 +8,7 @@
 	color: #0f1f2e;
 }
 
-.appHeader {
-	text-align: center;
-}
-
-.kicker {
-	font-size: 0.82rem;
-	letter-spacing: 0.18em;
-	text-transform: uppercase;
-	color: #335f8a;
-}
-
-.subtitle {
-	margin: 0 auto;
-	max-width: 42rem;
-	color: #3d5063;
-}
-
 .mapSection {
-	margin-top: 1.2rem;
 	width: min(95vw, 1050px);
 	background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(243, 238, 227, 0.92));
 	border: 1px solid rgba(116, 131, 146, 0.35);
