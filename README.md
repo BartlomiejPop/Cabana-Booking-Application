@@ -1,63 +1,136 @@
-# Resort Map — Code Test
+# Cabana Booking Application
 
-*You are creating the world's first interactive cabana booking website for luxury resorts. Our goal is to offer guests a seamless digital experience: browse an interactive map of the resort, see poolside cabanas availability in real time, and book their ideal lounging spot just steps from the pool—all with just a couple of clicks. This project integrates a visually-rich resort map with live cabana availability and booking, redefining poolside convenience for our guests. Map format and asset usage are described below.*
+This repository contains a small full-stack TypeScript solution for the resort cabana booking challenge described in [GUIDELINES.md](GUIDELINES.md). The app renders an interactive resort map, shows cabana availability, validates guest credentials against the bookings input file, and updates the map immediately after a successful reservation.
 
----
+## What The App Does
 
-## Task
+- Displays the resort map from an ASCII file.
+- Allows to insert custom API data
+- Treats `W` as bookable cabanas, `p` as pool tiles, `#` as paths, `c` as chalets, and `.` as empty space.
+- Lets a guest click an available cabana and book it with room number and guest name.
+- Rejects invalid bookings when the room number and guest name do not match the provided bookings data.
+- Marks booked cabanas as unavailable as soon as the reservation succeeds.
+- Allows booking only one cabana per guest. If guest books second cabana, the first one is cancelled.
 
-Build a webapp that displays the resort map and allows guests to book cabanas. The frontend should rely entirely on a RESTful API for all data.
+## Application Overview
 
-- **Backend:** Provides a RESTful API that serves all information needed to display the interactive, bookable resort map and to handle cabana bookings.
-- **Frontend:** Provides an interactive resort map and enables cabana booking.
+<img src="assets/map1.png" alt="map1" width="600" />
+<img src="assets/map2.png" alt="map2" width="600" />
+<img src="assets/map3.png" alt="map3" width="600" />
+<img src="assets/map4.png" alt="map4" width="600" />
+<img src="assets/bookedCabanas.png" alt="map with booked cabanas" width="600" />
+<img src="assets/modalReservation.png" alt="Booking modal" width="600" />
 
-  - **Resort Map View:**
-    - Displays a visual map of the resort using tiles from `assets`.
-    - Map layout and cabana availability are rendered based on the API response.
-    - Legend:
-      - `W` = cabana
-      - `p` = pool
-      - `#` = path
-      - `c` = chalet
-      - `.` = empty space
+collection of testing maps and bookings is prepared in ./testApi folder
 
-  - **Cabana Interaction:**
-    - When a guest clicks on a cabana (`W`):
-      - If the cabana is **available**, show a booking interface (1-step flow: prompt for room number and guest name). Show confirmation of booking and redirect back to map view.
-      - If the cabana is **unavailable**, display information that it's not available.
+## Tech Stack
 
-  - **Booking Feedback:**
-    - Once a cabana is booked, update the map immediately to show that it is no longer available (e.g., use a distinct visual style for booked cabanas).
+- Backend: Node.js, TypeScript, Express, Zod
+- Frontend: React, TypeScript, Vite
+- Testing: Node test runner, Supertest, Vitest, Testing Library
+- CI: GitHub Actions in [.github/workflows/ci.yml](.github/workflows/ci.yml)
 
-  - **Validation:** Booking is only allowed if room number and name match a current guest (validated via API using the bookings file).
+## Project Structure
 
-The backend reads map layout and booking/guest data from files specified via CLI options: `--map <path-to-map>` (for the ASCII resort map; defaults to `map.ascii` in the working directory) and `--bookings <path-to-bookings>` (for bookings and guest information; defaults to `bookings.json` in the working directory).
-Be sure to use the provided example map (`map.ascii`) and bookings (`bookings.json`) files as the required format for your input files.
+- [backend](backend): Express API and booking/map services
+- [frontend](frontend): React UI and component tests
+- [api](api): default map and bookings input files
+- [testApi](testApi): alternative map and bookings fixtures for testing
+- [scripts](scripts): root startup and combined test entrypoints
 
-There is no need for persistent storage for cabana bookings—in-memory or session state on the backend is fine.
+## Installation
 
-No auth—assume that knowing room number and guest name is sufficient auth.
+Install dependencies in the root package and both app packages:
 
-The booking flow should end with a clear confirmation and the map visibly updated (booked cabana distinct). Errors (e.g. invalid room/name) should show a short, human-readable message.
+```bash
+npm install
+npm --prefix backend install
+npm --prefix frontend install
+```
 
----
+## Run The App
 
-## Deliverables
+Start both backend and frontend from the repository root:
 
-- **Source code** in a git repository (please provide a link and make sure we have permissions to view/download code).
-- **README:** Please ensure your README is well-structured, concise, and clearly documents how to run and use your app.
-Readme should containt a short paragraph explaining your core design decisions and any trade-offs (e.g. why you structured the API/UI as you did, what you kept simple or skipped).
-- **Single entrypoint:** Provide a **single command** (e.g. `./run.sh`, `npm run start`, or `dotnet run`) that launches both backend and frontend together, so reviewers need only run one command from the project root. This starting command **must accept** the `--map <path>` and `--bookings <path>` arguments so reviewers can specify alternative map or bookings files at startup.
-- **AI-assisted workflow documentation:** Please include your AI workflow in `AI.md`. Which tools you used, what kind of prompts and how many steps it took. This will not be judged, but a topic we would like to discuss during the interview.
-- **Screenshot:** Please include a screenshot (in your repository, e.g., `screenshot.png`) showing your running solution (map view).
-- **Automated Tests:** Include automated tests covering core backend and frontend functionality. Tests should validate booking logic, REST API behavior, map updates, and UI responses to typical user actions. Document how to run all tests in the README.
-- **LLM use:** If you use an LLM or coding agent (which we encourage), include the key prompts or agent setup you used. We may ask detailed questions about both the solution and how you used the tooling.
+```bash
+npm run start
+```
 
----
+The root start command is the single entrypoint required by the challenge. It launches:
 
-## General notes
+- the backend on port `3000`
+- the frontend with Vite development server
 
-- **Languages:** Use **.NET and/or JavaScript/TypeScript** only. Other languages are not in scope.
-- Keep it simple; avoid over-engineering. Within that stack, any reasonable libraries or frameworks are fine as long as they are documented.
-- No real auth or persistent storage required—in-memory/session state for cabana bookings is enough.
-- When in doubt, assume we had a simple solution in mind; feel free to ask questions.
+The command also accepts custom input files:
+
+```bash
+npm run start -- --map ./testApi/maps/map2.ascii --bookings ./testApi/bookings/bookings2.json
+or:
+npm run start --map ./testApi/maps/map2.ascii --bookings ./testApi/bookings/bookings2.json
+
+```
+
+Optional API override for the frontend:
+
+```bash
+npm run start -- --api-base-url http://localhost:3000
+```
+
+## Run Tests
+
+Run all backend and frontend tests from the repository root:
+
+```bash
+npm test
+```
+
+Run each side separately when needed:
+
+```bash
+npm --prefix backend test
+npm --prefix frontend test
+```
+
+Build the frontend production bundle:
+
+```bash
+npm --prefix frontend run build
+```
+
+## API Summary
+
+The backend exposes these endpoints:
+
+- `GET /api`
+- `GET /api/map`
+- `GET /api/bookings`
+- `GET /api/cabanas`
+- `POST /api/validate-guest`
+- `POST /api/cabanas/:cabanaId/bookings`
+
+## Design Decisions And Trade-Offs
+
+The backend keeps cabana reservations in memory. That matches the challenge requirement and keeps the implementation simple, but reservations reset when the server restarts.
+
+The frontend treats the backend as the source of truth. After a successful booking it refetches the map rather than patching local state in multiple places. That adds one extra request, but it keeps the UI aligned with the API contract and makes booked state easier to trust.
+
+Validation exists on both sides. The frontend validates early to provide faster feedback, while the backend repeats the same checks so invalid requests cannot bypass the rules.
+
+Project structure is divided on separate folders containing reusable components, styling files, service functions, separate tests folders and contains ci.yml file running pipeline. Considering the scale of this application all of the above is not crucial, but leaves much better environment for potential further development
+
+Each developed feature has been provided as separate branch named "feature/(description)" and delivered in several commits atomizing the continous development
+
+## Deliverables Notes
+
+The repository includes:
+
+- a single root startup command via `npm run start`
+- automated backend and frontend tests via `npm test`
+- AI workflow notes in [AI.md](AI.md)
+- CI automation in [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- testing maps and bookings in /testApi
+
+## Additional Information
+
+- Map displays "p" field as a pool image only if there is no more "p" fields in X and Y axis in range of 1. Otherwise the "p" field is treated as a part of bigger water container and is displayed as water image. Diagonal "p" neighbours are treated as separate pools.
+- Map generator is programmed to draw only one path to chalet prioritizing path from bottom, then from a side and lasty from top.
