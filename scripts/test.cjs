@@ -46,16 +46,24 @@ function parseBackendStats(output) {
 function parseFrontendStats(output) {
   const clean = stripAnsi(output);
 
-  const testsLineMatch = clean.match(/Tests\s+([^\n]+)/i);
-  if (testsLineMatch) {
-    const testsLine = testsLineMatch[1];
-    const passedMatch = testsLine.match(/(\d+)\s+passed/i);
+  // Vitest prints a dedicated "Tests" summary line, e.g.:
+  // "Tests  1 failed | 40 passed (41)"
+  const lines = clean.split(/\r?\n/);
+  const testsLine = lines.find((line) => /^\s*Tests\b/i.test(line));
+  if (testsLine) {
+    const passedMatch = testsLine.match(/(\d+)\s+passed\b/i);
+    const failedMatch = testsLine.match(/(\d+)\s+failed\b/i);
     const totalMatch = testsLine.match(/\((\d+)\)/);
 
-    if (passedMatch || totalMatch) {
-      const passed = passedMatch ? Number(passedMatch[1]) : 0;
-      const total = totalMatch ? Number(totalMatch[1]) : passed;
-      return { passed, total };
+    const passed = passedMatch ? Number(passedMatch[1]) : 0;
+
+    if (totalMatch) {
+      return { passed, total: Number(totalMatch[1]) };
+    }
+
+    if (passedMatch || failedMatch) {
+      const failed = failedMatch ? Number(failedMatch[1]) : 0;
+      return { passed, total: passed + failed };
     }
   }
 
