@@ -58,7 +58,7 @@ export default function BookingModal({ cabanaId, onCancel, onSubmit }: BookingMo
 				onClick={(event) => event.stopPropagation()}
 			>
 				<div className="modalHeader">
-					<h2 id="booking-modal-title">Book Cabana {cabanaId}</h2>
+					<h2 id="booking-modal-title">Book {cabanaId}</h2>
 					<p>Enter the room number and guest name exactly as listed in the resort booking system.</p>
 				</div>
 

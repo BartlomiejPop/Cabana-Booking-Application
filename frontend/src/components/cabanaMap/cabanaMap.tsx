@@ -40,7 +40,7 @@ export default function CabanaMap() {
 	}
 
 	useEffect(() => {
-		void loadMap()
+		 void loadMap()
 	}, [])
 
 	const cabanaByCoordinate = useMemo(() => buildCabanaLookup(mapData), [mapData])
@@ -59,7 +59,7 @@ export default function CabanaMap() {
 		}
 
 		setSelectedCabana(cabana)
-		setCabanaMessage(`Cabana ${cabana.id} is available. Complete the booking form to reserve it.`)
+		setCabanaMessage(`${cabana.id} is available. Complete the booking form to reserve it.`)
 		setCabanaMessageTone('info')
 	}
 
@@ -72,7 +72,7 @@ export default function CabanaMap() {
 			const booking = await bookCabana(API_BASE_URL, selectedCabana.id, payload)
 			await loadMap()
 			setSelectedCabana(null)
-			setCabanaMessage(`${booking.message}. ${booking.cabanaId} is now unavailable.`)
+			setCabanaMessage(`${booking.message}.`)
 			setCabanaMessageTone('success')
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Booking failed'
